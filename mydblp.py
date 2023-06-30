@@ -25,7 +25,7 @@ parser.add_argument("--conf", default=None,
     "SOFT": ["sosp", "osdi", "icsoc", "icws", "middleware"], 
     "DM": ["sigmod", "kdd", "icde", "cikm", "wsdm", "dasfaa", "pkdd", "iswc", "icdm", "cidr"], 
     "AI":["aaai", "nips", "icml", "ijcai", "iclr"]
-    Notes: ipps means ipdps
+    Notes: ipps means IPDPS.
     ''')
 parser.add_argument("--loglevel", choices=["debug", "info", "silent"], default="info", 
     help="logging level. defaule: silent")
@@ -54,11 +54,54 @@ logger.addHandler(ch)
 logger.addHandler(sh)
 
 # %%
+# keywords = {
+#     "virtual": 0.2,
+#     "machine": 0.2,
+#     "vm": 0.2,
+#     "task": 0.2,
+#     "job": 0.2,
+#     "server": 0.2,
+#     "cloud": 0.3,
+#     "placement": 0.2,
+#     "center": 0.2,
+#     "data": 0.2,
+#     "workload": 0.2,
+#     "interference": 0.4,
+#     "contention": 0.3,
+#     "schedul": 0.4,
+#     "qos": 0.4,
+#     "utilization": 0.2,
+#     "locat": 0.2,
+#     "colocation": 0.2,
+#     "share": 0.2,
+#     "consolidat": 0.2,
+#     "heterogene": 0.2,
+#     "resource": 0.3,
+#     "efficien": 0.2,
+#     "predict": 0.3,
+#     "perform": 0.2,
+#     "degrad": 0.2,
+#     "service": 0.2,
+#     "sensi": 0.2,
+#     "chance": 0.3,
+#     "noise": 0.3,
+#     "imbalanc": 0.3,
+#     "time": 0.3,
+#     "series": 0.2,
+#     "classification": 0.2,
+#     "forecasting": 0.2,
+#     "cold": 0.3,
+#     "start": 0.2,
+#     "anomaly": 0.2,
+#     "deploy": 0.2,
+#     "allot": 0.2,
+#     "performance": 0.2
+# }
+
 keywords = {
-    "vm": 0.2,
     "virtual": 0.2,
-    "machine": 0.4,
-    "cloud": 0.4,
+    "machine": 0.2,
+    "vm": 0.2
 }
 
 venue_set = {
@@ -101,6 +144,22 @@ def savePaper2csv(paper_list, filename):
         for paper in paper_list:
             writer.writerow([paper.title, paper.venue, paper.year, paper.pages, ", ".join(i for i in paper.authors)])
 
+
+def getContentStrings(tag):
+    tmp = ""
+    for c in tag.contents:
+        clen = 0
+        try:
+            clen = len(c.contents)
+        except AttributeError:
+            clen = 0
+        if clen:
+            cstr = getContentStrings(c)
+            tmp += cstr
+        else:
+            tmp += c.string
+    return tmp
+
 def searchConference(conf, keywords):
     dblp_url = "https://dblp.org/search/publ/inc"
     # conf = "aaai"
@@ -127,6 +186,7 @@ def searchConference(conf, keywords):
         logger.debug("dblp url: {}".format(dblp_url))
         logger.debug("url payload: {}".format(payload))
         r = requests.get(dblp_url, params=payload)
+        logger.debug(r.url)
         logger.info("Request {} 1000 records the {} time".format(conf, page+1))
         soup = BeautifulSoup(r.text, "html.parser")
         record_list = soup.find_all("li", class_=re.compile("year|inproceedings"))
@@ -149,7 +209,8 @@ def searchConference(conf, keywords):
                 continue
             # try:
             authors = record.cite.find_all(itemprop="author")
-            paper_title = record.cite.find(class_="title").string
+            title_tag = record.cite.find(class_="title")
+            paper_title = getContentStrings(title_tag)
             paper_venue = record.cite.find(itemprop="isPartOf").string
             if not re.match(confre, paper_venue):
                 logger.warning("Ignore {}".format(paper_venue))

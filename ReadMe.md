@@ -25,4 +25,5 @@ Crawl papers for specific conferences in dblp with multiple keywords.
 - [ ] Crawl journal
 - [ ] Multi-processing crawl
 - [ ] Add more regex filters
+- [ ] Read keywords from a json file
 - [ ] More
