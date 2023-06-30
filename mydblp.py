@@ -54,54 +54,48 @@ logger.addHandler(ch)
 logger.addHandler(sh)
 
 # %%
-# keywords = {
-#     "virtual": 0.2,
-#     "machine": 0.2,
-#     "vm": 0.2,
-#     "task": 0.2,
-#     "job": 0.2,
-#     "server": 0.2,
-#     "cloud": 0.3,
-#     "placement": 0.2,
-#     "center": 0.2,
-#     "data": 0.2,
-#     "workload": 0.2,
-#     "interference": 0.4,
-#     "contention": 0.3,
-#     "schedul": 0.4,
-#     "qos": 0.4,
-#     "utilization": 0.2,
-#     "locat": 0.2,
-#     "colocation": 0.2,
-#     "share": 0.2,
-#     "consolidat": 0.2,
-#     "heterogene": 0.2,
-#     "resource": 0.3,
-#     "efficien": 0.2,
-#     "predict": 0.3,
-#     "perform": 0.2,
-#     "degrad": 0.2,
-#     "service": 0.2,
-#     "sensi": 0.2,
-#     "chance": 0.3,
-#     "noise": 0.3,
-#     "imbalanc": 0.3,
-#     "time": 0.3,
-#     "series": 0.2,
-#     "classification": 0.2,
-#     "forecasting": 0.2,
-#     "cold": 0.3,
-#     "start": 0.2,
-#     "anomaly": 0.2,
-#     "deploy": 0.2,
-#     "allot": 0.2,
-#     "performance": 0.2
-# }
-
 keywords = {
     "virtual": 0.2,
     "machine": 0.2,
-    "vm": 0.2
+    "vm": 0.2,
+    "task": 0.2,
+    "job": 0.2,
+    "server": 0.2,
+    "cloud": 0.3,
+    "placement": 0.2,
+    "center": 0.2,
+    "data": 0.2,
+    "workload": 0.2,
+    "interference": 0.4,
+    "contention": 0.3,
+    "schedul": 0.4,
+    "qos": 0.4,
+    "utilization": 0.2,
+    "locat": 0.2,
+    "colocation": 0.2,
+    "share": 0.2,
+    "consolidat": 0.2,
+    "heterogene": 0.2,
+    "resource": 0.3,
+    "efficien": 0.2,
+    "predict": 0.3,
+    "perform": 0.2,
+    "degrad": 0.2,
+    "service": 0.2,
+    "sensi": 0.2,
+    "chance": 0.3,
+    "noise": 0.3,
+    "imbalanc": 0.3,
+    "time": 0.3,
+    "series": 0.2,
+    "classification": 0.2,
+    "forecasting": 0.2,
+    "cold": 0.3,
+    "start": 0.2,
+    "anomaly": 0.2,
+    "deploy": 0.2,
+    "allot": 0.2,
+    "performance": 0.2
 }
 
 venue_set = {
@@ -163,7 +157,7 @@ def getContentStrings(tag):
 def searchConference(conf, keywords):
     dblp_url = "https://dblp.org/search/publ/inc"
     # conf = "aaai"
-    confre = re.compile(conf, re.IGNORECASE)
+    confre = re.compile(".*{}.*".format(conf), re.IGNORECASE)
     if args.strictmatch:
         confre = re.compile("(?=^((?!workshop).)*$)(?=[^@]?{}[^@]?)".format(conf), re.IGNORECASE)
     logger.debug(args.strictmatch)
