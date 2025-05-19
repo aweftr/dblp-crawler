@@ -1,0 +1,10 @@
+{
+  "name": "machine",
+  "checkedboxes": [
+    "hpca",
+    "sigmod",
+    "authors",
+    "conference"
+  ],
+  "year": "2023"
+}
