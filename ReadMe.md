@@ -30,12 +30,16 @@ Crawl papers for specific conferences in dblp with multiple keywords.
 
 ### New crawler features
 No more python crawler. Use the sparql query instead. Fast and accurate!
-- [x] Search by title regex for any publication (including conferences and journals, etc.)
+- [x] Search by title regex for any publication types (conferences, journals, etc.)
+  - [x] Keywords separated by spaces must all appear somewhere in the title.
+  - [x] Keywords joined by '|' act as an OR condition in the title match.
 - [x] Select author, conference, year and doi by your will.
 - [x] Filter publications by year (greater equal).
 - [x] Remember past search query and load it. 
 - [x] Show results in a scrollable manner. 
 - [x] Save query results to user specified filename. 
+- [x] Clear all selected conferences with one click. 
+- [x] Accurate search (conference name must equal to the given name without workshop or other prefix and suffix) and fuzzy search (prefix and suffix in conference name is allowed) for conference. 
 
 ### Things to be implemented
 - [ ] Add journal selection

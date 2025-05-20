@@ -11,11 +11,14 @@ sparql = SPARQLWrapper(
 sparql.setReturnFormat(JSON)
 
 # Input widgets
+total_checkboxes = []
 name_edit = urwid.Edit("Search Name: ")
+fuzzy_checkbox = urwid.CheckBox("with fuzzy search (default accurate search)", state=False)
 year_checkbox = urwid.CheckBox("Filter by year", state=False)
 year_edit = urwid.Edit("Year >= than: ")
 year_edit_wrap = urwid.AttrMap(year_edit, 'default')
 query_text = urwid.Text("")
+total_checkboxes.extend([fuzzy_checkbox, year_checkbox])
 
 isQueried = False
 # Conference names
@@ -52,7 +55,7 @@ def build_checkbox_grid(checkboxes, num_cols=3):
 def build_conf_types(conf_names, num_cols=4):
     grids = []
     conf_checkboxes = []
-    grids.append(urwid.Text("Select Conferences:"))
+    grids.append(urwid.Columns([urwid.Text("Select Conferences"), fuzzy_checkbox]))
     for conf_type in conf_names:
         grids.append(urwid.Text(conf_type))
         conf_checkboxes_tmp = [urwid.CheckBox(conf) for conf in conf_names[conf_type]]
@@ -64,6 +67,16 @@ def build_conf_types(conf_names, num_cols=4):
 conf_grid_rows, conf_checkboxes = build_conf_types(conf_names, 4)
 select_checkboxes = [urwid.CheckBox(sname) for sname in select_names]
 select_grid_rows = build_checkbox_grid(select_checkboxes, 4)
+total_checkboxes.extend(conf_checkboxes)
+total_checkboxes.extend(select_checkboxes)
+
+def on_clear_clicked(button):
+    for cb in conf_checkboxes:
+        cb.set_state(False)
+
+clear_conf_button = urwid.Button("Clear Selected Conf", align="center")
+urwid.connect_signal(clear_conf_button, 'click', on_clear_clicked)
+
 
 class SearchQuery:
     def __init__(self):
@@ -73,10 +86,7 @@ class SearchQuery:
     
     def getState(self):
         self.name = name_edit.edit_text.strip()
-        for cb in conf_checkboxes:
-            if cb.get_state():
-                self.checkedboxes.append(cb.get_label())
-        for cb in select_checkboxes:
+        for cb in total_checkboxes:
             if cb.get_state():
                 self.checkedboxes.append(cb.get_label())
         if year_checkbox.get_state():
@@ -94,10 +104,7 @@ class SearchQuery:
     
     def loadState(self):
         name_edit.edit_text = self.name
-        for cb in conf_checkboxes:
-            if cb.get_label() in self.checkedboxes:
-                cb.set_state(True)
-        for cb in select_checkboxes:
+        for cb in total_checkboxes:
             if cb.get_label() in self.checkedboxes:
                 cb.set_state(True)
         if self.year:
@@ -154,7 +161,7 @@ def make_rows(ret):
 def on_generate_clicked(button):
     result_walker.clear()
     result_walker.append(urwid.Text("Querying! Please wait"))
-    keyword = name_edit.edit_text.strip()
+    keywords = name_edit.edit_text.strip().split()
     selected_confs = [cb.label for cb in conf_checkboxes if cb.get_state()]
     selected_variable = [cb.label for cb in select_checkboxes if cb.get_state()]
     if len(selected_variable) == 0:
@@ -165,6 +172,8 @@ def on_generate_clicked(button):
     select_constraints = ""
     group_constraints = ""
     author_select = False
+    for keyword in keywords:
+        select_constraints += f'FILTER regex(?title, "{keyword}", "i")\n'
     if "authors" in selected_variable:
         select_constraints += f"""?publ dblp:createdBy ?author .\n?author rdfs:label ?name .\n"""
         selected_variable_str += ' (GROUP_CONCAT(?name; separator=", ") AS ?authors)'
@@ -175,7 +184,10 @@ def on_generate_clicked(button):
         if author_select:
             group_constraints += " ?publishedin"
     if len(selected_confs) > 0:
-        select_constraints += f"""FILTER REGEX(?publishedin, "{"|".join(selected_confs)}", "i")\n"""
+        conf_query = "|".join(selected_confs)
+        if not fuzzy_checkbox.state:
+            conf_query = "^({})$".format(conf_query)
+        select_constraints += f"""FILTER REGEX(?publishedin, "{conf_query}", "i")\n"""
     if "year" in selected_variable:
         selected_variable_str += ' ?year'
         if author_select:
@@ -193,7 +205,6 @@ def on_generate_clicked(button):
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     SELECT ?title {selected_variable_str} WHERE {{
         ?publ dblp:title ?title .
-        FILTER regex(?title, "{keyword}", "i")
         ?publ dblp:publishedIn ?publishedin .
         ?publ dblp:yearOfPublication ?year .
         {select_constraints}
@@ -266,8 +277,8 @@ buttons_column = urwid.Columns([generate_button, load_button, save_button, save_
 # Build UI list
 selection_widgets = [
     name_edit,
-    urwid.Divider(),
     *conf_grid_rows,
+    clear_conf_button,
     urwid.Divider(),
     urwid.Text("Select:"),
     *select_grid_rows,
